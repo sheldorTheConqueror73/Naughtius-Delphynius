@@ -1,24 +1,55 @@
 from scapy.all import *
 import info
+import threading
+from time import sleep
+
 MODE_ARP = 1
-ARP_WHO_HAS =1
+ARP_WHO_HAS = 1
+ARP_IS_AT = 2
+discovered = []
+
+
 def arp_scan(host, current):
-    p = Ether(dst=ETHER_BROADCAST)/ARP(op=ARP_WHO_HAS,pdst=current, psrc=host)
-    return srp1(p, timeout = 0.001, verbose =0) #shortest response time was  0.00000035
+    p = Ether(dst=ETHER_BROADCAST) / ARP(op=ARP_WHO_HAS, pdst=current, psrc=host)
+    return srp1(p, timeout=0.001, verbose=0)  # shortest response time was  0.00000035
+
+
+# need to move to asynch
 
 
 SCAN_DIC = {MODE_ARP: arp_scan}
 
+
 def scan(host, start, end, mode=MODE_ARP):
+    global discovered
     discovered = []
+    stop_event = threading.Event()
+    t = threading.Thread(target=sniff_arp, args=(stop_event,))
+    t.start()
     method = SCAN_DIC[mode]
-    valid, current =info.get_next_address(start, end, start)
+    valid, current = info.get_next_address(start, end, start)
     while valid:
-        current_string=info.to_string(current)
+        current_string = info.to_string(current)
         response = method(host, current_string)
-        if response is not None and ARP in response:
-            #print(f'discovered {current_string}')
-            print(current_string)
-            discovered.append((current,))
         valid, current = info.get_next_address(start, end, start)
+
+    print("done")
+    sleep(1)    # for any late responses
+    stop_event.set()
+    t.join()
+    print("dead")
     return discovered
+
+
+def handle_arp_response(frame):
+    ip = frame[ARP].psrc
+    mac = frame[ARP].hwsrc
+    print(f'discovered {ip} \t MAC: {mac}')
+    discovered.append((ip, mac))
+
+
+def sniff_arp(stop_event):
+    print("arp listener up")
+    while not stop_event.is_set():
+        answers = sniff(lfilter=lambda x: ARP in x and x[ARP].op == ARP_IS_AT, prn=handle_arp_response, store=0)
+    print("arp listener stopped")
