@@ -21,7 +21,7 @@ def to_ipv4(address):
 
 
 def to_string(address):
-    return "".join([address[i] if not i % 2 else '.' for i in range(2 * ADDRESS_LENGTH - 1)])
+    return "".join([str(address[i//2]) if not i % 2 else '.' for i in range(2 * ADDRESS_LENGTH - 1)])
 
 
 def calc_network_span(host, mask):
@@ -29,10 +29,11 @@ def calc_network_span(host, mask):
     net_mask = to_ipv4(mask)
     net_start = [host_addr[i] & net_mask[i] for i in range(ADDRESS_LENGTH)]
     net_end = [(host_addr[i] | (~net_mask[i])) & 0xff for i in range(ADDRESS_LENGTH)]
-    print(f"net start :{net_start} \n net end: {net_end}" )
+    #print(f"net start :{net_start} \n net end: {net_end}" )
+    return net_start, net_end
 
 def get_next_address(start, end, current):
-    for i in range(0, ADDRESS_LENGTH, -1):
+    for i in range(ADDRESS_LENGTH-1, 0, -1):
         if current[i] != 255:
             current[i] += 1
             break
