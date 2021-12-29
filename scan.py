@@ -33,11 +33,9 @@ def scan(host, start, end, mode=MODE_ARP):
         response = method(host, current_string)
         valid, current = info.get_next_address(start, end, start)
 
-    print("done")
-    sleep(1)    # for any late responses
     stop_event.set()
     t.join()
-    print("dead")
+    print("scan complete")
     return discovered
 
 
@@ -51,5 +49,5 @@ def handle_arp_response(frame):
 def sniff_arp(stop_event):
     print("arp listener up")
     while not stop_event.is_set():
-        answers = sniff(lfilter=lambda x: ARP in x and x[ARP].op == ARP_IS_AT, prn=handle_arp_response, store=0)
+        answers = sniff(lfilter=lambda x: ARP in x and x[ARP].op == ARP_IS_AT, prn=handle_arp_response, store=0, timeout=3)
     print("arp listener stopped")
