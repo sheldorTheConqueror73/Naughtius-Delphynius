@@ -1,7 +1,6 @@
 from scapy.all import *
-import info
 import threading
-from time import sleep
+import net_info
 
 MODE_ARP = 1
 ARP_WHO_HAS = 1
@@ -14,9 +13,6 @@ def arp_scan(host, current):
     return srp1(p, timeout=0.001, verbose=0)  # shortest response time was  0.00000035
 
 
-# need to move to asynch
-
-
 SCAN_DIC = {MODE_ARP: arp_scan}
 
 
@@ -27,11 +23,11 @@ def scan(host, start, end, mode=MODE_ARP):
     t = threading.Thread(target=sniff_arp, args=(stop_event,))
     t.start()
     method = SCAN_DIC[mode]
-    valid, current = info.get_next_address(start, end, start)
+    valid, current = net_info.get_next_address(start, end, start)
     while valid:
-        current_string = info.to_string(current)
+        current_string = net_info.to_string(current)
         response = method(host, current_string)
-        valid, current = info.get_next_address(start, end, start)
+        valid, current = net_info.get_next_address(start, end, start)
 
     stop_event.set()
     t.join()
