@@ -39,7 +39,9 @@ def handle_arp_response(frame):
     ip = frame[ARP].psrc
     mac = frame[ARP].hwsrc
     print(f'discovered {ip} \t MAC: {mac}')
-    discovered.append((ip, mac))
+    if (ip, mac) not in discovered:
+        discovered.append((ip, mac))
+
 
 
 def sniff_arp(stop_event):

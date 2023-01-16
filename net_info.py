@@ -26,7 +26,6 @@ def calc_network_span(host, mask):
     net_mask = to_ipv4(mask)
     net_start = [host_addr[i] & net_mask[i] for i in range(ADDRESS_LENGTH)]
     net_end = [(host_addr[i] | (~net_mask[i])) & 0xff for i in range(ADDRESS_LENGTH)]
-    print(f" calculating net info\n net start :{to_string(net_start)} \n net end: {to_string(net_end)}" )
     return net_start, net_end
 
 def get_next_address(start, end, current):

@@ -19,7 +19,7 @@ class Logger:
             print(msg)
         if Logger.LOG_FILE is None:
             return False
-        Logger.LOG_FILE.write(f"{prefix} {f'[{get_time()}] ' if timestamp else ''}{msg}")
+        Logger.LOG_FILE.write(f"{prefix} {f'[{get_time()}] ' if timestamp else ''}{msg}\n")
         Logger.LOG_FILE.flush()
         return True
 
