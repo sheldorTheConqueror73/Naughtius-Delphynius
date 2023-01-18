@@ -73,7 +73,5 @@ if operation == 'scan':
     elif args.mode == 'syn':
         pass
 
-
-
 log.log_info(f"{APP_NAME} exiting", True, False)
 exit(0)
