@@ -1,3 +1,4 @@
+import socket
 import psutil
 
 ADDRESS_LENGTH = 4
@@ -13,12 +14,13 @@ def get_interface_data():
     return False, None, None
 
 
+# maybe use socket instead?
 def to_ipv4(address):
     return [int(i) for i in address.split('.')]
 
 
 def to_string(address):
-    return "".join([str(address[i//2]) if not i % 2 else '.' for i in range(2 * ADDRESS_LENGTH - 1)])
+    return "".join([str(address[i // 2]) if not i % 2 else '.' for i in range(2 * ADDRESS_LENGTH - 1)])
 
 
 def calc_network_span(host, mask):
@@ -28,8 +30,9 @@ def calc_network_span(host, mask):
     net_end = [(host_addr[i] | (~net_mask[i])) & 0xff for i in range(ADDRESS_LENGTH)]
     return net_start, net_end
 
+
 def get_next_address(start, end, current):
-    for i in range(ADDRESS_LENGTH-1, 0, -1):
+    for i in range(ADDRESS_LENGTH - 1, 0, -1):
         if current[i] != 255:
             current[i] += 1
             break
@@ -40,3 +43,10 @@ def get_next_address(start, end, current):
         return False, None
     return True, current
 
+
+def validate_ipv4_address(address):
+    try:
+        socket.inet_aton(address)
+        return True
+    except:
+        return False
