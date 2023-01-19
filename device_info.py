@@ -2,7 +2,6 @@ from mac_vendor_lookup import MacLookup, BaseMacLookup
 
 mac = None
 is_initialized = False
-<<<<<<< HEAD
 CHACHE_FILE = ''
 
 
