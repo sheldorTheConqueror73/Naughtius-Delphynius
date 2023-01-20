@@ -50,3 +50,10 @@ def validate_ipv4_address(address):
         return True
     except:
         return False
+
+
+def is_local(host, mask, net_addr):
+    temp = []
+    for i in range(ADDRESS_LENGTH):
+        temp.append(mask[i] & host[i])
+    return temp == net_addr
