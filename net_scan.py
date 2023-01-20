@@ -228,7 +228,7 @@ def handle_arp_response(frame):
     mac = frame[ARP].hwsrc
     log.log_info(f'discovered {ip} \t MAC: {mac}', True)
     if (ip, mac) not in discovered and ip != device_ip:
-        discovered.append((ip, mac))
+        discovered.append({'ipv4': ip, 'mac': mac})
 
 
 def sniff_arp(stop_event):

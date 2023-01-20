@@ -1,4 +1,5 @@
 from mac_vendor_lookup import MacLookup, BaseMacLookup
+import socket
 
 mac = None
 is_initialized = False
@@ -24,3 +25,10 @@ def resolve_mac(address):
     if mac is None:
         return False
     return mac.lookup(address)
+
+
+def get_name(addr):
+    try:
+        return socket.gethostbyaddr(addr)[0]
+    except:
+        return 'UNKNOWN NAME'

@@ -1,3 +1,5 @@
+import mac_vendor_lookup
+
 import net_info
 import net_scan
 import logger
@@ -17,6 +19,12 @@ try:
         parser.error("target arguments must or or two host numbers/ ipv4 address")
 except Exception as err:
     exit(-2)
+
+
+def check_arg_limit():
+    if args.target is None or len(args.target) != 1:
+        log.log_err("you must select one target to scan", False, True)
+        exit(-1)
 
 VENDORS_FILE = 'vendors.txt'
 OS_WIN = "Windows"
@@ -66,13 +74,16 @@ if operation == 'scan':
         log.log_debug(f"{len(discovered)} hosts discovered", True, True)
         print()
         for i, device in enumerate(discovered):
-            log.log_debug(f"{i + 1}\tip: {device[0]:<15}\tMAC: {device[1]:<17}\t{device_info.resolve_mac(device[1])}",
-                          True, True)
+            try:
+                vendor = device_info.resolve_mac(device['mac'])
+            except mac_vendor_lookup.VendorNotFoundError:
+                vendor = 'UNKNOWN VENDOR'
+            name = device_info.get_name(device['ipv4'])
+            log.log_debug(f"{i + 1}\tip: {device['ipv4']:<15}\tMAC: {device['mac']:<17}\t{vendor:<30}\t{name}", True, True)
+
     elif args.mode == 'syn':
         ports = []
-        if args.target is None or len(args.target) != 1:
-            log.log_err("you must select one target to scan", False, True)
-            exit(-1)
+        check_arg_limit()
         if args.target[0].isdigit():
             pass  # handle persistent target selection
         elif net_info.validate_ipv4_address(args.target[0]):
@@ -82,10 +93,15 @@ if operation == 'scan':
             exit(-1)
 
 elif operation == 'deauth':
+    check_arg_limit()
+
     if args.mode == 'bluetooth':
         pass
+
     elif args.mode == 'wifi':
         pass
 
 log.log_info(f"{APP_NAME} exiting", True, False)
 exit(0)
+
+
