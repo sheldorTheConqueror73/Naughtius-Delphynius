@@ -1,4 +1,4 @@
-from mac_vendor_lookup import MacLookup, BaseMacLookup
+import mac_vendor_lookup
 import socket
 
 mac = None
@@ -9,8 +9,8 @@ CHACHE_FILE = ''
 def module_init(storage_dir, file_name):
     global mac, is_initialized, CHACHE_FILE
     CHACHE_FILE = file_name
-    BaseMacLookup.cache_path = storage_dir + CHACHE_FILE
-    mac = MacLookup()
+    mac_vendor_lookup.BaseMacLookup.cache_path = storage_dir + CHACHE_FILE
+    mac = mac_vendor_lookup.MacLookup()
     is_initialized = True
 
 
@@ -24,7 +24,10 @@ def update_vendors():
 def resolve_mac(address):
     if mac is None:
         return False
-    return mac.lookup(address)
+    try:
+        return mac.lookup(address)
+    except mac_vendor_lookup.VendorNotFoundError:
+        return 'UNKNOWN VENDOR'
 
 
 def get_name(addr):

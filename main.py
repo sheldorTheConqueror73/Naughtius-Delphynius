@@ -1,4 +1,3 @@
-import mac_vendor_lookup
 
 import net_info
 import net_scan
@@ -74,10 +73,7 @@ if operation == 'scan':
         log.log_debug(f"{len(discovered)} hosts discovered", True, True)
         print()
         for i, device in enumerate(discovered):
-            try:
-                vendor = device_info.resolve_mac(device['mac'])
-            except mac_vendor_lookup.VendorNotFoundError:
-                vendor = 'UNKNOWN VENDOR'
+            vendor = device_info.resolve_mac(device['mac'])
             name = device_info.get_name(device['ipv4'])
             log.log_debug(f"{i + 1}\tip: {device['ipv4']:<15}\tMAC: {device['mac']:<17}\t{vendor:<30}\t{name}", True, True)
 

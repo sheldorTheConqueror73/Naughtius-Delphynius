@@ -230,7 +230,7 @@ def handle_arp_response(frame):
     if (ip, mac) not in discovered and ip != device_ip:
         discovered.append({'ipv4': ip, 'mac': mac})
 
-
+#add lambda as argmeunt for otherscan types
 def sniff_arp(stop_event):
     log.log_info("arp listener up")
     while not stop_event.is_set():
