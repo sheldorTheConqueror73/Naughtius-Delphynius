@@ -1,5 +1,4 @@
-import scapy.sendrecv
-from scapy.all import *
+from scapy.all import * #os.sys.path.append('/usr/local/lib/python2.7/site-packages')
 import threading
 import net_info
 import logger

@@ -3,11 +3,14 @@ from util import get_current_time_and_date as get_time_and_date, get_current_tim
 
 class Logger:
     LOG_FILE = None
-
+    LOGGER_ACTIVE = True
     def __init__(self, log_dir: str):
-        if Logger.LOG_FILE is None:
-            Logger.LOG_FILE = open(f"{log_dir} log.txt", 'w')
-
+        if Logger.LOG_FILE is None and Logger.LOGGER_ACTIVE:
+            try:
+                Logger.LOG_FILE = open(f"{log_dir} log.txt", 'w')
+            except:
+                Logger.LOG_FILE = None
+                Logger.LOGGER_ACTIVE = False
     def __del__(self):
         if Logger.LOG_FILE is None:
             return

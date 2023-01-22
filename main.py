@@ -1,4 +1,4 @@
-
+#!/usr/bin/python3
 import net_info
 import net_scan
 import logger
@@ -28,8 +28,12 @@ def check_arg_limit():
 VENDORS_FILE = 'vendors.txt'
 OS_WIN = "Windows"
 APP_NAME = "Naughtius-Maximus"
-STORAGE_DIR = f"{os.getenv('APPDATA')}\\{APP_NAME}\\" if platform.system() == OS_WIN \
-    else f"/opt/{APP_NAME}/"
+try:
+    STORAGE_DIR = f"{os.getenv('APPDATA')}\\{APP_NAME}\\" if platform.system() == OS_WIN \
+        else f"/opt/.{APP_NAME}/"
+    logger_active = True
+except:
+    logger_active = False
 
 if not os.path.exists(STORAGE_DIR):
     try:
@@ -38,11 +42,11 @@ if not os.path.exists(STORAGE_DIR):
         print(f"cannot create {STORAGE_DIR} \n exiting")
         exit(-1)
 
-log = logger.Logger(STORAGE_DIR)
+log = logger.Logger(STORAGE_DIR, )
 log.log_info(f"{APP_NAME} starting", True, True)
 
 log.log_info("getting network data", True)
-valid, host, mask = net_info.get_interface_data()
+valid, host, mask = net_info.get_interface_data(platform.system())
 if valid is False:
     log.log_err("could not obtain interface info", True, True)
     log.log_info(f"{APP_NAME} exiting", True, True)

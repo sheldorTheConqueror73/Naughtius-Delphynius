@@ -1,16 +1,23 @@
 import socket
 import psutil
-
+import struct
 ADDRESS_LENGTH = 4
 
 
-def get_interface_data():
+def get_interface_data(os_name):
     addrs = psutil.net_if_addrs()
     for interface in addrs:
-        if "wi-fi" in interface.lower() or 'ethernet' in interface.lower():
-            interface_data = addrs[interface][1]
-            if interface_data.address.split('.')[0] == '10' or interface_data.address.split('.')[0] == '192':
+        iface_name =interface.lower()
+        if os_name == 'Windows':
+            if "wi-fi" in iface_name or 'ethernet' in iface_name:
+                interface_data = addrs[interface][1]
+                if interface_data.address.split('.')[0] == '10' or interface_data.address.split('.')[0] == '192':
+                    return True, interface_data[1], interface_data[2]
+        else:
+            if iface_name != 'lo' and len(interface) == 6:
+                interface_data = addrs[interface][0]
                 return True, interface_data[1], interface_data[2]
+
     return False, None, None
 
 
