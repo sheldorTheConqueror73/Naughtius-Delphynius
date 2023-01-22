@@ -3,13 +3,14 @@ import socket
 
 mac = None
 is_initialized = False
-CHACHE_FILE = ''
+cache_file = ''
+default_gateway = ''
 
 
 def module_init(storage_dir, file_name):
-    global mac, is_initialized, CHACHE_FILE
-    CHACHE_FILE = file_name
-    mac_vendor_lookup.BaseMacLookup.cache_path = storage_dir + CHACHE_FILE
+    global mac, is_initialized, cache_file, default_gateway
+    cache_file = file_name
+    mac_vendor_lookup.BaseMacLookup.cache_path = storage_dir + cache_file
     mac = mac_vendor_lookup.MacLookup()
     is_initialized = True
 

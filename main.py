@@ -1,16 +1,20 @@
 #!/usr/bin/python3
 import net_info
 import net_scan
+import net_attack
 import logger
 import device_info
-import platform
 import os
 import argparse
+
+
 
 parser = argparse.ArgumentParser(description="security multitool")
 parser.add_argument('-o', '--operation', help="operation to execute", required=True)
 parser.add_argument('-m', '--mode', help="operation mode")
 parser.add_argument('-t', '--target', help='target', nargs='+')
+parser.add_argument('-d', '--duration', help='duration of operation')
+
 
 try:
     args = parser.parse_args()
@@ -26,14 +30,11 @@ def check_arg_limit():
         exit(-1)
 
 VENDORS_FILE = 'vendors.txt'
-OS_WIN = "Windows"
+OS_WIN = "nt"
 APP_NAME = "Naughtius-Maximus"
-try:
-    STORAGE_DIR = f"{os.getenv('APPDATA')}\\{APP_NAME}\\" if platform.system() == OS_WIN \
-        else f"/opt/.{APP_NAME}/"
-    logger_active = True
-except:
-    logger_active = False
+STORAGE_DIR = f"{os.getenv('APPDATA')}\\{APP_NAME}\\" if os.name == OS_WIN \
+    else f"/opt/.{APP_NAME}/"
+gateway_mac, gateway_ip = net_info.get_gateway()
 
 if not os.path.exists(STORAGE_DIR):
     try:
@@ -46,7 +47,7 @@ log = logger.Logger(STORAGE_DIR, )
 log.log_info(f"{APP_NAME} starting", True, True)
 
 log.log_info("getting network data", True)
-valid, host, mask = net_info.get_interface_data(platform.system())
+valid, host, mask = net_info.get_interface_data(os.name)
 if valid is False:
     log.log_err("could not obtain interface info", True, True)
     log.log_info(f"{APP_NAME} exiting", True, True)
@@ -62,6 +63,7 @@ log.log_debug(f"network address {net_info.to_string(net_addr)}, broadcast {net_i
 # add support for argv
 net_scan.module_init(host, log)
 device_info.module_init(STORAGE_DIR, VENDORS_FILE)
+net_attack.module_init(log)
 
 if not os.path.isfile(STORAGE_DIR + VENDORS_FILE):
     log.log_info("no vendor table found... updating vendor table", False, True)
@@ -95,11 +97,20 @@ if operation == 'scan':
 elif operation == 'deauth':
     check_arg_limit()
 
+
     if args.mode == 'bluetooth':
+        print('not implemented yet')
         pass
 
     elif args.mode == 'wifi':
-        pass
+        if args.target == 'all':
+            net_attack.wifi_deauth_all(gateway_mac)
+        elif net_info.validate_ipv4_address(args.target[0]):
+            target_mac = net_info.query_arp(args.target[0])
+            net_attack.wifi_deauth_host(target_mac, gateway_mac)
+        elif args.target.isdigit():
+            pass  # handle persistent target selection
+
 
 log.log_info(f"{APP_NAME} exiting", True, False)
 exit(0)

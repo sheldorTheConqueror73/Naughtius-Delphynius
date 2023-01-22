@@ -1,14 +1,14 @@
-import socket
+import netifaces
 import psutil
-import struct
+from scapy.all import *
 ADDRESS_LENGTH = 4
-
+ARP_WHO_HAS = 1
 
 def get_interface_data(os_name):
     addrs = psutil.net_if_addrs()
     for interface in addrs:
         iface_name =interface.lower()
-        if os_name == 'Windows':
+        if os_name == 'nt':
             if "wi-fi" in iface_name or 'ethernet' in iface_name:
                 interface_data = addrs[interface][1]
                 if interface_data.address.split('.')[0] == '10' or interface_data.address.split('.')[0] == '192':
@@ -55,7 +55,7 @@ def validate_ipv4_address(address):
     try:
         socket.inet_aton(address)
         return True
-    except:
+    except :
         return False
 
 
@@ -64,3 +64,14 @@ def is_local(host, mask, net_addr):
     for i in range(ADDRESS_LENGTH):
         temp.append(mask[i] & host[i])
     return temp == net_addr
+
+def query_arp(address):
+    p = Ether(dst=ETHER_BROADCAST) / ARP(op=ARP_WHO_HAS, pdst=address)
+    response = srp1(p, timeout=0.001, verbose=0)
+    if response and ARP in response:
+        return response[ARP].hwsrc
+    return None
+def get_gateway():
+    gateway_ipv4 = netifaces.gateways()['default'][2][0]
+    gateway_mac = query_arp(gateway_ipv4)
+    return gateway_mac, gateway_ipv4
