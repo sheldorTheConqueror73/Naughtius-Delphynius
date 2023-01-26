@@ -1,18 +1,34 @@
 import netifaces
 import psutil
 from scapy.all import *
+import subprocess
+import wmi
+
 ADDRESS_LENGTH = 4
 ARP_WHO_HAS = 1
 
+
 def get_interface_data(os_name):
+    if os_name == 'nt':
+        w = wmi.WMI()
+        for nac in w.Win32_NetworkAdapterConfiguration():
+            if nac.IPEnabled:
+                idx = nac.InterfaceIndex
+                break
+        else:
+            print("oops, do something, no NIC has that address")
+        na = w.Win32_NetworkAdapter(InterfaceIndex=idx)
+        if not na:
+            print("oops, unlikely race condition, NIC disabled right before we checked it")
+        active_iface = na[0].NetConnectionID.lower()
     addrs = psutil.net_if_addrs()
     for interface in addrs:
-        iface_name =interface.lower()
+        iface_name = interface.lower()
         if os_name == 'nt':
-            if "wi-fi" in iface_name or 'ethernet' in iface_name:
+            if active_iface == iface_name:
                 interface_data = addrs[interface][1]
                 if interface_data.address.split('.')[0] == '10' or interface_data.address.split('.')[0] == '192':
-                    return True, interface_data[1], interface_data[2]
+                    return True, interface_data[1], interface_data[2], 'wifi' if iface_name == 'wi-fi' else 'ethernet'
         else:
             if iface_name != 'lo' and len(interface) == 6:
                 interface_data = addrs[interface][0]
@@ -55,7 +71,7 @@ def validate_ipv4_address(address):
     try:
         socket.inet_aton(address)
         return True
-    except :
+    except:
         return False
 
 
@@ -65,13 +81,27 @@ def is_local(host, mask, net_addr):
         temp.append(mask[i] & host[i])
     return temp == net_addr
 
+
 def query_arp(address):
     p = Ether(dst=ETHER_BROADCAST) / ARP(op=ARP_WHO_HAS, pdst=address)
-    response = srp1(p, timeout=0.001, verbose=0)
-    if response and ARP in response:
-        return response[ARP].hwsrc
-    return None
+    retransmit = 10
+    while True:
+        response = srp1(p, timeout=0.1, verbose=0)
+        if response and ARP in response:
+            return response[ARP].hwsrc
+        retransmit -= 1
+        if retransmit == 0:
+            return None
+
+
 def get_gateway():
     gateway_ipv4 = netifaces.gateways()['default'][2][0]
     gateway_mac = query_arp(gateway_ipv4)
     return gateway_mac, gateway_ipv4
+
+
+def get_channel(os_name):
+    if os_name == 'nt':
+        pass
+    else:
+        pass

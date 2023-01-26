@@ -141,10 +141,11 @@ UDP_MOST_COMMON = [2, 3, 7, 9, 13, 17, 19, 20, 21, 22, 23, 37, 38, 42, 49, 53, 6
                    62575, 62677, 62699, 62958, 63420, 63555, 64080, 64481, 64513, 64590, 64727, 65024]
 device_ip = ""
 log = None
+iface_type =''
 is_initialized = False
 
 
-def module_init(host, main_log: logger.Logger):
+def module_init(host, main_log: logger.Logger, iface_type):
     """
     initializes scan modules
     :param host: ip address of local device
