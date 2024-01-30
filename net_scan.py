@@ -1,9 +1,8 @@
-from scapy.all import * #os.sys.path.append('/usr/local/lib/python2.7/site-packages')
+from scapy.all import *  # os.sys.path.append('/usr/local/lib/python2.7/site-packages')
 import threading
 import net_info
 import logger
 from time import time
-
 
 MODE_ARP = 1
 MODE_SYN = 2
@@ -141,11 +140,10 @@ UDP_MOST_COMMON = [2, 3, 7, 9, 13, 17, 19, 20, 21, 22, 23, 37, 38, 42, 49, 53, 6
                    62575, 62677, 62699, 62958, 63420, 63555, 64080, 64481, 64513, 64590, 64727, 65024]
 device_ip = ""
 log = None
-iface_type =''
 is_initialized = False
 
 
-def module_init(host, main_log: logger.Logger, iface_type):
+def module_init(host, main_log: logger.Logger):
     """
     initializes scan modules
     :param host: ip address of local device
@@ -191,10 +189,10 @@ def port_scan(net_addr, mask, target, mode=MODE_SYN, ports=None):
     start_time = time()
     for port in ports:
         log.log_info(f"scanning port {port}", True)
-        result = SCAN_DIC[mode](target, port,timeout)
+        result = SCAN_DIC[mode](target, port, timeout)
         if result == 'open':
             open_ports.append(port)
-            log.log_debug(f'port {port} is open', True, True)
+            log.log_debug(f'port {port}z {socket.getservbyport(port)} is open', True, True)
 
     log.log_info(f'scan completed in {time() - start_time:.2f} seconds', True, True)
     log.log_info(f'total ports open: {len(open_ports)}', True, True)
@@ -230,7 +228,8 @@ def handle_arp_response(frame):
     if (ip, mac) not in discovered and ip != device_ip:
         discovered.append({'ipv4': ip, 'mac': mac})
 
-#add lambda as argmeunt for otherscan types
+
+# add lambda as argmeunt for otherscan types
 def sniff_arp(stop_event):
     log.log_info("arp listener up")
     while not stop_event.is_set():
