@@ -16,19 +16,22 @@ ARGS_INAVL = -1
 NET_ERR = -2
 NO_ACCESS = -3
 IO_ERR = -4
+NO_TARGET = -5
 
 def read_key():
     return keyboard.read_key()
+
 
 def spinner():
     while True:
         for cursor in '|/—\\':
             yield cursor
 
-#spin = spinner()
+
+# spin = spinner()
 
 
-banner =r"""
+banner = r"""
  _   _                   _     _   _           
 | \ | | __ _ _   _  __ _| |__ | |_(_)_   _ ___ 
 |  \| |/ _` | | | |/ _` | '_ \| __| | | | / __|
@@ -40,7 +43,6 @@ banner =r"""
 | |  | | (_| |>  <| | | | | | | |_| \__ \      
 |_|  |_|\__,_/_/\_\_|_| |_| |_|\__,_|___/      
 """
-
 
 parser = argparse.ArgumentParser(description="security multitool")
 parser.add_argument('-o', '--operation', choices=['scan', 'deauth'], help="operation to execute")
@@ -56,10 +58,9 @@ except Exception as err:
     exit(ARGS_INAVL)
 
 if len(sys.argv) == 1:
-    pass # start in UI mode
+    pass  # start in UI mode
 else:
-    pass # start in command mode
-
+    pass  # start in command mode
 
 VENDORS_FILE = 'vendors.txt'
 OS_WIN = "nt"
@@ -70,7 +71,9 @@ CURR_DIR = os.getcwd()
 log = logger.Logger(STORAGE_DIR)
 log.log_info(f"{APP_NAME} starting", True, True)
 
-
+if os.getuid() != 0:
+    log.log_err("root access required.... exiting", print_msg=True)
+    exit(NO_ACCESS)
 
 print(banner)
 
@@ -78,16 +81,17 @@ if os.environ.get('SUDO_USER'):
     USER = os.environ['SUDO_USER']
 else:
     USER = os.environ['USER']
-result = subprocess.run(f"sudo runuser -l {USER} -c'aplay {CURR_DIR}/resources/scooby_laugh.wav'", shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+result = subprocess.run(f"sudo runuser -l {USER} -c'aplay {CURR_DIR}/resources/scooby_laugh.wav'", shell=True,
+                        stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
 if result.returncode == 1:
     print(result.stderr, USER)
     print("EXTINGFDG")
-    exit(IO_ERR)
-if os.getuid() != 0:
-    log.log_err("root access required.... exiting")
-    exit(NO_ACCESS)
+    #exit(IO_ERR)
 
-target_bank =[]
+#check for dependencies
+
+target_bank = []
 
 gateway_mac, gateway_ip = net_info.get_gateway()
 if not gateway_ip:
@@ -100,8 +104,6 @@ if not os.path.exists(STORAGE_DIR):
     except:
         print(f"cannot create {STORAGE_DIR} \n exiting")
         exit(IO_ERR)
-
-
 
 log.log_info("getting network data", True)
 valid, host, mask, iface_name = net_info.get_interface_data(os.name)
@@ -137,7 +139,9 @@ if not os.path.isfile(STORAGE_DIR + VENDORS_FILE):
 
 discovered_hosts = []
 operation = args.operation
-mode = mode
+mode = args.mode
+
+
 
 
 def scan():
@@ -175,11 +179,19 @@ def deauth():
             net_attack.wifi_deauth_all(gateway_mac)
         elif net_info.validate_ipv4_address(args.target[0]):
             target_mac = net_info.query_arp(args.target[0])
-            net_attack.send_deauth(target_mac, iface_name, )
+            if not  target_mac:
+                log.log_err(f"cannot resolve mac addresss for target {args.target[0]}", print_msg=True)
+                exit(NO_TARGET)
+            net_attack.send_deauth(target_mac, iface_name, gateway_mac)
         elif args.target.isdigit():
             pass  # handle persistent target selection
 
 
+
+
+MENU_OPS = {'deauth':deauth , 'scan': scan}
+
+MENU_OPS[operation]();
 
 log.log_info(f"{APP_NAME} exiting", True, False)
 exit(ALL_GOOD)

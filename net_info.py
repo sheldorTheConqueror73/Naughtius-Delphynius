@@ -79,11 +79,13 @@ def is_local(host, mask, net_addr):
 
 
 def query_arp(address):
-    p = Ether(dst=ETHER_BROADCAST) / ARP(op=ARP_WHO_HAS, pdst=address)
-    response = srp1(p, timeout=0.01, verbose=0)
-    if response and ARP in response:
-        return response[ARP].hwsrc
-    return None
+    result = subprocess.run(f"arping {address} -f -c 10", shell=True,
+                            stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    try:
+        mac = result.stdout.decode().split('[')[1].split(']')[0]
+        return mac
+    except IndexError as e:
+        return None
 
 
 def get_gateway():
