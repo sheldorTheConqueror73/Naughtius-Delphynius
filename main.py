@@ -18,6 +18,12 @@ NO_ACCESS = -3
 IO_ERR = -4
 NO_TARGET = -5
 
+CURR_DIR = os.getcwd()
+CURR_USER = CURR_DIR.split('/')[2]
+result = subprocess.run(f"id -u {CURR_USER}", shell=True, stdout=subprocess.PIPE)
+CURR_USER_ID= result.stdout.decode().strip()
+
+
 def read_key():
     return keyboard.read_key()
 
@@ -29,6 +35,7 @@ def spinner():
 
 
 # spin = spinner()
+
 
 
 banner = r"""
@@ -73,19 +80,16 @@ log.log_info(f"{APP_NAME} starting", True, True)
 
 if os.getuid() != 0:
     log.log_err("root access required.... exiting", print_msg=True)
-    exit(NO_ACCESS)
+    #exit(NO_ACCESS)
 
 print(banner)
-
-if os.environ.get('SUDO_USER'):
-    USER = os.environ['SUDO_USER']
-else:
-    USER = os.environ['USER']
-result = subprocess.run(f"sudo runuser -l {USER} -c'aplay {CURR_DIR}/resources/scooby_laugh.wav'", shell=True,
+cmd = f'sudo -u {CURR_USER} XDG_RUNTIME_DIR="/run/user/{CURR_USER_ID}" aplay resources/scooby_laugh.wav'
+cmd2 ='2'
+result = subprocess.run(cmd2, shell=True,
                         stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
-if result.returncode == 1:
-    print(result.stderr, USER)
+if result.returncode is not 0:
+    print(result.stderr, CURR_USER)
     print("EXTINGFDG")
     #exit(IO_ERR)
 

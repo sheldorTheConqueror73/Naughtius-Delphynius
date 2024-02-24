@@ -18,6 +18,7 @@ class Logger:
             return
         Logger.LOG_FILE.close()
         Logger.LOG_FILE = None
+        Logger.LOGGER_ACTIVE = False
 
     def log(self, prefix, msg, timestamp=False, print_msg=False, redir=None):
         if print_msg:
